@@ -1,20 +1,34 @@
-def clean_and_load():
 
-    df = pd.read_csv("filtered_final_cleaned_data.csv")
+def clean_data(df):
+    """ This function drops duplicates once more to be sure
+        also drops the column property_ID since it does not affect price and is an immovlan code
+        also converts our datatypes to the right type
+        also drops properties without prices
+        """
+    
+    # Drop duplicates (safety)
+    df = df.drop_duplicates()
 
-    # converting float to int
+    # Drop useless columns
+    df = df.drop(columns=["property_ID"], errors="ignore")
+
+    # Convert datatypes
     df = df.apply(lambda x: x.astype("Int64") if x.dtype == float and (x.dropna() % 1 == 0).all() else x)
 
-    # converting objects to strings
-    df['property_ID'] = df['property_ID'].astype('string')
-    df['locality_name'] = df['locality_name'].astype('string')
-    df['type'] = df['type'].astype('category')
-    df['subtype'] = df['subtype'].astype('category')
-    df['state_of_building'] = df['state_of_building'].astype('category')
-    df['postal_code'] = df['postal_code'].astype('category')
-    
-    # removing properties that do not have the price
+    # Explicit type conversions
+    dtype_map = {
+        "locality_name": "string",
+        "type": "category",
+        "subtype": "category",
+        "state_of_building": "category",
+        "postal_code": "category"
+    }
+    for col, dtype in dtype_map.items():
+        if col in df.columns:
+            df[col] = df[col].astype(dtype)
+
+    # Drop rows without price
     df = df.dropna(subset=["price (€)"])
-    
+
     return df
 
