@@ -20,14 +20,14 @@ def build_preprocessing_pipeline(numeric_features, categorical_features):
     numeric_transformer = Pipeline(steps=[("imputer", SimpleImputer (strategy = "median")), ("scaler", StandardScaler())])
 
     #categorical preprocessing
-    categorical_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("onehot", OneHotEncoder(handle_unknown="ignor", sparse_output=False))])
+    categorical_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))])
 
     #combine preproc for num & cat features
     preprocessor = ColumnTransformer(transformers=[("num", numeric_transformer, numeric_features),("cat", categorical_transformer, categorical_features)])
 
     return preprocessor
 
-def build_full_pipeline(preprocessor)
+def build_full_pipeline(preprocessor):
     """attach a regression model to the preproccesing pipeline
         for now : Linear Regression (baseline)
         later: RF, XGBOOST, SVM"""
