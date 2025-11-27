@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransfo
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
+from xgboost.sklearn import XGBRegressor
 from sklearn.svm import SVR
 
 #-------------
@@ -39,7 +39,7 @@ def build_preprocessing_pipeline(numeric_features, categorical_features, log_tra
     transformers = []
 
     # num features that do not get log-transformed (if any)
-    numeric_not_log = [numfeat for numfeat in numeric_features if col not in log_transform_features]
+    numeric_not_log = [numfeat for numfeat in numeric_features if numfeat not in log_transform_features]
 
     #add the not log features to transformers list
     if numeric_not_log:
@@ -47,7 +47,7 @@ def build_preprocessing_pipeline(numeric_features, categorical_features, log_tra
         transformers.append(("num", numeric_no_log_transformer, numeric_not_log))
     #add the log features to transformers list
     if log_transform_features:
-        numeric_log_transformer = Pipeline([("imputer", SimpleImputer(strategy="median")), ("log", FunctionTransformer(func=log_transform, validate=True)), ("scaler", StandardScaler())])
+        numeric_log_transformer = Pipeline([("imputer", SimpleImputer(strategy="median")), ("log", FunctionTransformer(func=log_transform, validate=False)), ("scaler", StandardScaler())])
         transformers.append(("num_log", numeric_log_transformer, log_transform_features))
 
     #categorical preprocessing
@@ -55,7 +55,7 @@ def build_preprocessing_pipeline(numeric_features, categorical_features, log_tra
     transformers.append(("cat", categorical_transformer, categorical_features))
 
     #combine preproc for num & cat features syntax: ColumnTransformer(transformers=[('name', transformer, columns)]
-    preprocessor = ColumnTransformer(transformers=transformers)
+    preprocessor = ColumnTransformer(transformers=transformers, remainder = "drop")
 
     return preprocessor
 
@@ -79,7 +79,7 @@ def build_full_pipeline(preprocessor, model_type):
     elif model_type == "RF":
         model = RandomForestRegressor(n_estimators = 200, max_depth = None, random_state = 42, n_jobs = 1)
     elif model_type == "XGB":
-        model = XGBRegressor(n_estimators = 200, max_depth = 6, learning_rate = 0.1, random_state = 42, n_jobs = 1, objective = "reg:squarederror", eval_metric="rmse")
+        model = XGBRegressor(n_estimators = 200, max_depth = None, learning_rate = 0.1, random_state = 42, n_jobs = -1, tree_method = "hist", objective = "reg:squarederror", eval_metric="rmse")
     elif model_type == "SVM":
         model = SVR(kernel = "rbf", C=100, gamma="scale", epsilon = 0.1 )
     else:
